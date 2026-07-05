@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="PsicoDiario">
+<meta name="theme-color" content="#6366f1">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Diario Psicológico</title>
+<style>
+  :root {
+    --purple: #6366f1;
+    --purple-light: #eef2ff;
+    --purple-dark: #4338ca;
+    --green: #10b981;
+    --green-light: #ecfdf5;
+    --red: #ef4444;
+    --red-light: #fef2f2;
+    --amber: #f59e0b;
+    --amber-light: #fffbeb;
+    --blue: #3b82f6;
+    --blue-light: #eff6ff;
+    --pink: #ec4899;
+    --pink-light: #fdf2f8;
+    --teal: #14b8a6;
+    --teal-light: #f0fdfa;
+    --orange: #f97316;
+    --orange-light: #fff7ed;
+    --indigo: #6366f1;
+    --bg: #f8f7f4;
+    --surface: #ffffff;
+    --border: #e5e3df;
+    --text: #1c1917;
+    --muted: #78716c;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-top: env(safe-area-inset-top, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f0e0d;
+      --surface: #1c1917;
+      --border: #292524;
+      --text: #fafaf9;
+      --muted: #a8a29e;
+      --purple-light: #1e1b4b;
+      --green-light: #052e16;
+      --red-light: #450a0a;
+      --amber-light: #451a03;
+      --blue-light: #0c1a2e;
+      --pink-light: #3b0764;
+      --teal-light: #042f2e;
+      --orange-light: #431407;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  body { display: flex; flex-direction: column; overflow: hidden; }
+
+  /* Header */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: calc(var(--safe-top) + 12px) 20px 12px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-title { font-size: 18px; font-weight: 700; color: var(--text); }
+  .header-sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .btn-icon {
+    width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--bg); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 18px; color: var(--text);
+  }
+  .btn-icon:active { transform: scale(0.94); }
+
+  /* Nav tabs */
+  .nav {
+    display: flex; background: var(--surface); border-bottom: 1px solid var(--border);
+    overflow-x: auto; gap: 0; flex-shrink: 0;
+    scrollbar-width: none;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-tab {
+    flex: none; padding: 10px 16px; font-size: 13px; font-weight: 500;
+    color: var(--muted); border-bottom: 2px solid transparent; cursor: pointer;
+    white-space: nowrap; transition: color 0.15s;
+  }
+  .nav-tab.active { color: var(--purple); border-bottom-color: var(--purple); }
+
+  /* Screens */
+  .screens { flex: 1; overflow: hidden; position: relative; }
+  .screen { position: absolute; inset: 0; overflow-y: auto; display: none; }
+  .screen.active { display: block; }
+  .screen-inner { padding: 20px 20px calc(var(--safe-bottom) + 100px); }
+
+  /* Date bar */
+  .date-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 10px 16px; margin-bottom: 20px;
+  }
+  .date-label { font-size: 13px; color: var(--muted); }
+  .date-input {
+    font-size: 14px; font-weight: 600; color: var(--purple);
+    border: none; background: transparent; cursor: pointer; outline: none;
+    font-family: inherit;
+  }
+  .date-today {
+    font-size: 12px; background: var(--purple-light); color: var(--purple);
+    padding: 4px 10px; border-radius: 20px; cursor: pointer; font-weight: 500; border: none;
+  }
+
+  /* Section cards */
+  .section-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px; margin-bottom: 16px;
+  }
+  .section-header {
+    display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px;
+  }
+  .section-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .section-meta { flex: 1; }
+  .section-num { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--muted); text-transform: uppercase; }
+  .section-title { font-size: 15px; font-weight: 600; color: var(--text); margin-top: 2px; }
+  .section-hint { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+
+  textarea {
+    width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 12px 14px; font-size: 15px; font-family: inherit; color: var(--text);
+    background: var(--bg); resize: none; outline: none; min-height: 90px;
+    line-height: 1.6; transition: border-color 0.15s;
+  }
+  textarea:focus { border-color: var(--purple); }
+  textarea::placeholder { color: var(--muted); font-size: 14px; }
+
+  .sub-label {
+    font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .field-group { margin-bottom: 14px; }
+  .field-group:last-child { margin-bottom: 0; }
+
+  /* Save button */
+  .save-btn {
+    display: block; width: 100%; padding: 16px;
+    background: var(--purple); color: white; border: none;
+    border-radius: var(--radius-sm); font-size: 16px; font-weight: 600;
+    cursor: pointer; margin-top: 8px; letter-spacing: 0.02em;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .save-btn:active { background: var(--purple-dark); transform: scale(0.98); }
+  .save-confirm {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    font-size: 14px; color: var(--green); margin-top: 10px; opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .save-confirm.visible { opacity: 1; }
+
+  /* History screen */
+  .history-empty {
+    text-align: center; padding: 60px 20px;
+    color: var(--muted); font-size: 15px;
+  }
+  .history-empty .big { font-size: 48px; margin-bottom: 12px; }
+  .entry-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px; margin-bottom: 12px;
+    cursor: pointer; transition: border-color 0.15s;
+  }
+  .entry-card:active { border-color: var(--purple); }
+  .entry-date { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .entry-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font-size: 11px; padding: 3px 8px; border-radius: 20px;
+    font-weight: 500; white-space: nowrap;
+  }
+  .chip-filled { background: var(--purple-light); color: var(--purple); }
+  .chip-empty { background: var(--bg); color: var(--muted); border: 1px dashed var(--border); }
+
+  /* Detail overlay */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    z-index: 200; display: flex; flex-direction: column; justify-content: flex-end;
+    opacity: 0; pointer-events: none; transition: opacity 0.25s;
+  }
+  .overlay.open { opacity: 1; pointer-events: all; }
+  .overlay-panel {
+    background: var(--surface); border-radius: 24px 24px 0 0;
+    max-height: 85vh; overflow-y: auto;
+    padding: 0 0 calc(var(--safe-bottom) + 20px);
+    transform: translateY(40px); transition: transform 0.25s;
+  }
+  .overlay.open .overlay-panel { transform: translateY(0); }
+  .overlay-handle {
+    width: 36px; height: 4px; background: var(--border); border-radius: 2px;
+    margin: 14px auto 0;
+  }
+  .overlay-header {
+    padding: 16px 20px 0; display: flex; align-items: center; justify-content: space-between;
+  }
+  .overlay-date { font-size: 18px; font-weight: 700; }
+  .overlay-close {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--bg); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; cursor: pointer; color: var(--muted);
+  }
+  .overlay-body { padding: 16px 20px; }
+  .detail-section { margin-bottom: 20px; }
+  .detail-section-title {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .detail-text {
+    font-size: 15px; line-height: 1.65; color: var(--text);
+    background: var(--bg); border-radius: var(--radius-sm);
+    padding: 12px 14px; white-space: pre-wrap;
+  }
+  .detail-empty { font-size: 14px; color: var(--muted); font-style: italic; }
+
+  /* Rating stars */
+  .stars { display: flex; gap: 6px; margin-top: 4px; }
+  .star { font-size: 22px; cursor: pointer; opacity: 0.3; transition: opacity 0.1s, transform 0.1s; }
+  .star.active { opacity: 1; }
+  .star:active { transform: scale(1.2); }
+
+  /* Delete btn */
+  .delete-btn {
+    display: block; width: 100%; padding: 14px;
+    background: var(--red-light); color: var(--red); border: 1px solid #fca5a5;
+    border-radius: var(--radius-sm); font-size: 15px; font-weight: 600;
+    cursor: pointer; margin-top: 8px;
+  }
+
+  /* Bottom nav */
+  .bottom-nav {
+    background: var(--surface); border-top: 1px solid var(--border);
+    display: flex; padding: 8px 0 calc(var(--safe-bottom) + 8px);
+    flex-shrink: 0;
+  }
+  .bnav-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    gap: 3px; cursor: pointer; padding: 4px 0;
+    font-size: 11px; color: var(--muted); font-weight: 500;
+    transition: color 0.15s;
+  }
+  .bnav-item.active { color: var(--purple); }
+  .bnav-icon { font-size: 24px; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: calc(var(--safe-bottom) + 80px); left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1c1917; color: white; padding: 10px 20px;
+    border-radius: 20px; font-size: 14px; font-weight: 500;
+    z-index: 300; opacity: 0; transition: all 0.3s; pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Export */
+  .export-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 14px; background: var(--green-light); color: var(--green);
+    border: 1px solid #6ee7b7; border-radius: var(--radius-sm);
+    font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 12px;
+  }
+
+  /* Stats screen */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 16px; text-align: center;
+  }
+  .stat-num { font-size: 28px; font-weight: 700; color: var(--purple); }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* Frases positivas special */
+  .frase-saved {
+    background: var(--amber-light); border: 1px solid #fcd34d;
+    border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 8px;
+    font-size: 14px; line-height: 1.6; color: var(--text);
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
+  }
+  .frase-del { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; flex-shrink: 0; padding: 0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">📓 PsicoDiario</div>
+    <div class="header-sub" id="headerSub">Registro diario</div>
+  </div>
+  <button class="btn-icon" onclick="exportData()" title="Exportar">📤</button>
+</div>
+
+<div class="nav" id="mainNav">
+  <div class="nav-tab active" data-screen="registro">Registro</div>
+  <div class="nav-tab" data-screen="historial">Historial</div>
+  <div class="nav-tab" data-screen="frases">Mis Frases</div>
+  <div class="nav-tab" data-screen="estadisticas">Estadísticas</div>
+</div>
+
+<div class="screens">
+
+  <!-- REGISTRO -->
+  <div class="screen active" id="screen-registro">
+    <div class="screen-inner">
+      <div class="date-bar">
+        <span class="date-label">📅 Fecha del registro</span>
+        <input type="date" class="date-input" id="entryDate">
+        <button class="date-today" onclick="setToday()">Hoy</button>
+      </div>
+
+      <!-- 1 Emociones positivas -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon" style="background:#ecfdf5">🌟</div>
+          <div class="section-meta">
+            <div class="section-num">Sección 1</div>
+            <div class="section-title">Emociones Positivas</div>
+            <div class="section-hint">¿Qué emoción positiva sentiste? ¿Qué la causó?</div>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="sub-label">¿Qué sentí?</div>
+          <textarea id="f1_emocion" placeholder="Alegría, gratitud, calma, entusiasmo..." rows="2"></textarea>
+        </div>
+        <div class="field-group">
+          <div class="sub-label">¿Qué lo causó?</div>
+          <textarea id="f1_causa" placeholder="Contexto, situación, persona..." rows="2"></textarea>
+        </div>
+        <div class="field-group">
+          <div class="sub-label">Intensidad</div>
+          <div class="stars" data-field="f1_rating">
+            <span class="star" data-val="1">⭐</span>
+            <span class="star" data-val="2">⭐</span>
+            <span class="star" data-val="3">⭐</span>
+            <span class="star" data-val="4">⭐</span>
+            <span class="star" data-val="5">⭐</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2 Emociones negativas -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon" style="background:#fef2f2">🌧️</div>
+          <div class="section-meta">
+            <div class="section-num">Sección 2</div>
+            <div class="section-title">Emociones Negativas</div>
+            <div class="section-hint">¿Qué emoción negativa sentiste? ¿Qué la desencadenó?</div>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="sub-label">¿Qué sentí?</div>
+          <textarea id="f2_emocion" placeholder="Ansiedad, frustración, tristeza, rabia..." rows="2"></textarea>
+        </div>
+        <div class="field-group">
+          <div class="sub-label">¿Qué lo causó?</div>
+          <textarea id="f2_causa" placeholder="Situación, persona, pensamiento..." rows="2"></textarea>
+        </div>
+        <div class="field-group">
+          <div class="sub-label">Intensidad</div>
+          <div class="stars" data-field="f2_rating">
+            <span class="star" data-val="1">⭐</span>
+            <span class="star" data-val="2">⭐</span>
+            <span class="star" data-val="3">⭐</span>
+            <span class="star" data-val="4">⭐</span>
+            <span class="star" data-val="5">⭐</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 Asertividad -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon" style="background:#eff6ff">💬</div>
+          <div class="section-meta">
+            <div class="section-num">Sección 3</div>
+            <div class="section-title">Gestión de la Asertividad</div>
+            <div class="section-hint">¿Qué dijiste/hiciste? ¿Cómo debería haberlo manejado mejor?</div>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="sub-label">¿Qué dije o hice?</div>
+          <textarea id="f3_situacion" placeholder="Describe la situación y tu respuesta..." rows="3"></textarea>
+        </div>
+        <div class="field-group">
+          <div class="sub-label">¿Cómo debería haberlo contestado de manera asertiva?</div>
+          <textarea id="f3_asertivo" placeholder="Respuesta más asertiva que podría haber dado..." rows="3"></textarea>
+        </div>
+      </div>
+
+      <!-- 4 Delegación -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon" style="background:#fff7ed">🤝</div>
+          <div class="section-meta">
+            <div class="section-num">Sección 4</div>
+            <div class="section-title">Evaluación de Delegación</div>
+            <div class="section-hint">¿Podría haberlo delegado? Si no, ¿cómo lo cambiaría?</div>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="sub-label">¿Qué tarea o responsabilidad?</div>
+          <textarea id="f4_tarea" placeholder="Describe la situación o tarea..." rows="2"></textarea>
+        </div>
+        <div class="field-group">
+          <div class="sub-label">¿Podría haberlo delegado?</div>
+          <div style="display:flex; gap:10px; margin-bottom:10px;">
+            <button class="toggle-btn" data-group="delegado" data-val="si" onclick="toggleSelect(this)">✅ Sí</button>
+            <button class="toggle-btn" data-group="delegado" data-val="no" onclick="toggleSelect(this)">❌ No</button>
+            <button class="toggle-btn" data-group="delegado" data-val="parcial" onclick="toggleSelect(this)">⚖️ Parcialmente</button>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="sub-label">¿Cómo lo hubiera cambiado?</div>
+          <textarea id="f4_cambio" placeholder="Reflexión sobre cómo gestionar esta situación de manera diferente..." rows="3"></textarea>
+        </div>
+      </div>
+
+      <!-- 5 Pensamientos reiterativos -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon" style="background:#fdf2f8">🔄</div>
+          <div class="section-meta">
+            <div class="section-num">Sección 5</div>
+            <div class="section-title">Pensamientos Reiterativos</div>
+            <div class="section-hint">¿Qué pensamientos se repiten en tu mente?</div>
+          </div>
+        </div>
+        <div class="field-group">
+          <textarea id="f5_pensamientos" placeholder="Anota los pensamientos que se repiten una y otra vez..." rows="4"></textarea>
+        </div>
+      </div>
+
+      <!-- 6 Auto-cura -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon" style="background:#ecfdf5">💪</div>
+          <div class="section-meta">
+            <div class="section-num">Sección 6</div>
+            <div class="section-title">Auto-cura</div>
+            <div class="section-hint">Gym, cuidado personal, descanso...</div>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="sub-label">¿Qué hice por mí hoy?</div>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+            <button class="toggle-btn" data-group="autocura" data-val="gym" onclick="toggleSelect(this)">🏋️ Gym</button>
+            <button class="toggle-btn" data-group="autocura" data-val="deporte" onclick="toggleSelect(this)">🏃 Deporte</button>
+            <button class="toggle-btn" data-group="autocura" data-val="meditacion" onclick="toggleSelect(this)">🧘 Meditación</button>
+            <button class="toggle-btn" data-group="autocura" data-val="alimentacion" onclick="toggleSelect(this)">🥗 Alimentación</button>
+            <button class="toggle-btn" data-group="autocura" data-val="descanso" onclick="toggleSelect(this)">😴 Descanso</button>
+            <button class="toggle-btn" data-group="autocura" data-val="higiene" onclick="toggleSelect(this)">🚿 Higiene personal</button>
+            <button class="toggle-btn" data-group="autocura" data-val="naturaleza" onclick="toggleSelect(this)">🌿 Naturaleza</button>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="sub-label">Notas adicionales</div>
+          <textarea id="f6_notas" placeholder="Añade detalles sobre tu autocuidado de hoy..." rows="2"></textarea>
+        </div>
+      </div>
+
+      <!-- 7 Actividad social -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon" style="background:#eef2ff">👥</div>
+          <div class="section-meta">
+            <div class="section-num">Sección 7</div>
+            <div class="section-title">Actividad Social</div>
+            <div class="section-hint">Conexiones con otras personas, familia, amigos...</div>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="sub-label">¿Con quién estuve?</div>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+            <button class="toggle-btn" data-group="social" data-val="familia" onclick="toggleSelect(this)">👨‍👩‍👧 Familia</button>
+            <button class="toggle-btn" data-group="social" data-val="amigos" onclick="toggleSelect(this)">👫 Amigos</button>
+            <button class="toggle-btn" data-group="social" data-val="pareja" onclick="toggleSelect(this)">❤️ Pareja</button>
+            <button class="toggle-btn" data-group="social" data-val="trabajo" onclick="toggleSelect(this)">💼 Compañeros</button>
+            <button class="toggle-btn" data-group="social" data-val="solo" onclick="toggleSelect(this)">🧍 Solo/a</button>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="sub-label">¿Cómo fue la interacción?</div>
+          <textarea id="f7_descripcion" placeholder="Describe cómo fue el tiempo social de hoy..." rows="3"></textarea>
+        </div>
+      </div>
+
+      <!-- 8 Logros y cualidades -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon" style="background:#fffbeb">🏆</div>
+          <div class="section-meta">
+            <div class="section-num">Sección 8</div>
+            <div class="section-title">Logros y Cualidades</div>
+            <div class="section-hint">Reconoce tus logros y cualidades personales de hoy</div>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="sub-label">¿Qué logré hoy?</div>
+          <textarea id="f8_logros" placeholder="Pequeños o grandes logros del día..." rows="3"></textarea>
+        </div>
+        <div class="field-group">
+          <div class="sub-label">¿Qué cualidad mía se destacó?</div>
+          <textarea id="f8_cualidades" placeholder="Persistencia, generosidad, creatividad, valentía..." rows="2"></textarea>
+        </div>
+      </div>
+
+      <!-- 9 Frases positivas -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon" style="background:#fffbeb">✨</div>
+          <div class="section-meta">
+            <div class="section-num">Sección 9</div>
+            <div class="section-title">Frases Positivas para Mí</div>
+            <div class="section-hint">Escríbete algo amable, un recordatorio poderoso</div>
+          </div>
+        </div>
+        <div class="field-group">
+          <textarea id="f9_frase" placeholder="Escribe una frase positiva para ti mismo..." rows="3"></textarea>
+        </div>
+        <button onclick="saveFrase()" style="background:var(--amber-light);color:#92400e;border:1px solid #fcd34d;border-radius:var(--radius-sm);padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:0;">
+          ⭐ Guardar en mis frases favoritas
+        </button>
+      </div>
+
+      <button class="save-btn" onclick="saveEntry()">💾 Guardar Registro del Día</button>
+      <div class="save-confirm" id="saveConfirm">✅ Registro guardado correctamente</div>
+    </div>
+  </div>
+
+  <!-- HISTORIAL -->
+  <div class="screen" id="screen-historial">
+    <div class="screen-inner">
+      <div id="historialContent"></div>
+    </div>
+  </div>
+
+  <!-- FRASES -->
+  <div class="screen" id="screen-frases">
+    <div class="screen-inner">
+      <div style="margin-bottom:20px;">
+        <div style="font-size:22px;font-weight:700;margin-bottom:4px;">✨ Mis Frases Positivas</div>
+        <div style="font-size:14px;color:var(--muted);">Tu colección de recordatorios poderosos</div>
+      </div>
+      <div id="frasesContent"></div>
+    </div>
+  </div>
+
+  <!-- ESTADÍSTICAS -->
+  <div class="screen" id="screen-estadisticas">
+    <div class="screen-inner">
+      <div style="margin-bottom:20px;">
+        <div style="font-size:22px;font-weight:700;margin-bottom:4px;">📊 Estadísticas</div>
+        <div style="font-size:14px;color:var(--muted);">Tu progreso y patrones</div>
+      </div>
+      <div id="statsContent"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <div class="bnav-item active" data-screen="registro">
+    <span class="bnav-icon">📝</span>
+    <span>Registro</span>
+  </div>
+  <div class="bnav-item" data-screen="historial">
+    <span class="bnav-icon">📚</span>
+    <span>Historial</span>
+  </div>
+  <div class="bnav-item" data-screen="frases">
+    <span class="bnav-icon">✨</span>
+    <span>Frases</span>
+  </div>
+  <div class="bnav-item" data-screen="estadisticas">
+    <span class="bnav-icon">📊</span>
+    <span>Stats</span>
+  </div>
+</div>
+
+<!-- Detail Overlay -->
+<div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
+  <div class="overlay-panel" id="overlayPanel">
+    <div class="overlay-handle"></div>
+    <div class="overlay-header">
+      <div class="overlay-date" id="overlayDate"></div>
+      <button class="overlay-close" onclick="closeOverlay()">✕</button>
+    </div>
+    <div class="overlay-body" id="overlayBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<style>
+  .toggle-btn {
+    padding: 8px 14px; border-radius: 20px; border: 1.5px solid var(--border);
+    background: var(--bg); color: var(--text); font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all 0.15s; font-family: inherit;
+  }
+  .toggle-btn.selected {
+    background: var(--purple-light); color: var(--purple);
+    border-color: var(--purple);
+  }
+  .toggle-btn:active { transform: scale(0.95); }
+</style>
+
+<script>
+const DB_KEY = 'psico_entries_v2';
+const FRASES_KEY = 'psico_frases_v1';
+
+// -- State --
+let currentScreen = 'registro';
+let ratings = { f1_rating: 0, f2_rating: 0 };
+let selectedToggles = {};
+
+function getEntries() {
+  try { return JSON.parse(localStorage.getItem(DB_KEY) || '{}'); } catch { return {}; }
+}
+function saveEntries(data) { localStorage.setItem(DB_KEY, JSON.stringify(data)); }
+function getFrases() {
+  try { return JSON.parse(localStorage.getItem(FRASES_KEY) || '[]'); } catch { return []; }
+}
+function saveFrasesData(data) { localStorage.setItem(FRASES_KEY, JSON.stringify(data)); }
+
+// -- Date --
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function setToday() {
+  document.getElementById('entryDate').value = todayStr();
+  loadEntryForDate(todayStr());
+}
+function formatDate(str) {
+  if (!str) return '';
+  const [y,m,d] = str.split('-');
+  const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const days = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const dt = new Date(+y, +m-1, +d);
+  return days[dt.getDay()] + ', ' + d + ' ' + months[+m-1] + ' ' + y;
+}
+
+// -- Stars --
+document.querySelectorAll('.stars').forEach(container => {
+  const field = container.dataset.field;
+  container.querySelectorAll('.star').forEach(star => {
+    star.addEventListener('click', () => {
+      const val = +star.dataset.val;
+      ratings[field] = ratings[field] === val ? 0 : val;
+      updateStars(container, field);
+    });
+  });
+});
+function updateStars(container, field) {
+  const val = ratings[field] || 0;
+  container.querySelectorAll('.star').forEach(s => {
+    s.classList.toggle('active', +s.dataset.val <= val);
+  });
+}
+function resetStars() {
+  ratings = { f1_rating: 0, f2_rating: 0 };
+  document.querySelectorAll('.stars').forEach(container => {
+    const field = container.dataset.field;
+    updateStars(container, field);
+  });
+}
+
+// -- Toggle buttons --
+function toggleSelect(btn) {
+  const group = btn.dataset.group;
+  const val = btn.dataset.val;
+  if (!selectedToggles[group]) selectedToggles[group] = [];
+  const idx = selectedToggles[group].indexOf(val);
+  if (idx >= 0) {
+    selectedToggles[group].splice(idx, 1);
+    btn.classList.remove('selected');
+  } else {
+    selectedToggles[group].push(val);
+    btn.classList.add('selected');
+  }
+}
+function resetToggles() {
+  selectedToggles = {};
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('selected'));
+}
+function loadToggles(data) {
+  resetToggles();
+  if (!data) return;
+  ['delegado', 'autocura', 'social'].forEach(group => {
+    const vals = data[group] || [];
+    vals.forEach(val => {
+      selectedToggles[group] = selectedToggles[group] || [];
+      selectedToggles[group].push(val);
+      const btn = document.querySelector(`.toggle-btn[data-group="${group}"][data-val="${val}"]`);
+      if (btn) btn.classList.add('selected');
+    });
+  });
+}
+
+// -- Form fields --
+const FIELDS = ['f1_emocion','f1_causa','f2_emocion','f2_causa','f3_situacion','f3_asertivo',
+  'f4_tarea','f4_cambio','f5_pensamientos','f6_notas','f7_descripcion','f8_logros','f8_cualidades','f9_frase'];
+
+function getFormData() {
+  const data = {};
+  FIELDS.forEach(f => { data[f] = document.getElementById(f).value.trim(); });
+  data.f1_rating = ratings.f1_rating;
+  data.f2_rating = ratings.f2_rating;
+  data.delegado = selectedToggles.delegado || [];
+  data.autocura = selectedToggles.autocura || [];
+  data.social = selectedToggles.social || [];
+  return data;
+}
+
+function loadFormData(data) {
+  FIELDS.forEach(f => { document.getElementById(f).value = data ? (data[f] || '') : ''; });
+  if (data) {
+    ratings.f1_rating = data.f1_rating || 0;
+    ratings.f2_rating = data.f2_rating || 0;
+    document.querySelectorAll('.stars').forEach(c => updateStars(c, c.dataset.field));
+    loadToggles(data);
+  } else {
+    resetStars();
+    resetToggles();
+  }
+}
+
+function loadEntryForDate(date) {
+  const entries = getEntries();
+  loadFormData(entries[date] || null);
+}
+
+// -- Save --
+function saveEntry() {
+  const date = document.getElementById('entryDate').value;
+  if (!date) { showToast('Selecciona una fecha primero'); return; }
+  const data = getFormData();
+  const entries = getEntries();
+  entries[date] = data;
+  saveEntries(entries);
+  const el = document.getElementById('saveConfirm');
+  el.classList.add('visible');
+  setTimeout(() => el.classList.remove('visible'), 3000);
+  showToast('Registro guardado ✅');
+}
+
+// -- Save frase --
+function saveFrase() {
+  const text = document.getElementById('f9_frase').value.trim();
+  if (!text) { showToast('Escribe una frase primero'); return; }
+  const frases = getFrases();
+  if (frases.includes(text)) { showToast('Ya tienes esta frase guardada'); return; }
+  frases.unshift(text);
+  saveFrasesData(frases);
+  renderFrases();
+  showToast('Frase guardada ✨');
+}
+
+// -- Nav --
+function switchScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.bnav-item').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.querySelectorAll(`[data-screen="${name}"]`).forEach(el => el.classList.add('active'));
+  currentScreen = name;
+  if (name === 'historial') renderHistorial();
+  if (name === 'frases') renderFrases();
+  if (name === 'estadisticas') renderStats();
+}
+
+document.querySelectorAll('.nav-tab, .bnav-item').forEach(el => {
+  el.addEventListener('click', () => switchScreen(el.dataset.screen));
+});
+
+// -- Historial --
+function renderHistorial() {
+  const entries = getEntries();
+  const dates = Object.keys(entries).sort((a,b) => b.localeCompare(a));
+  const el = document.getElementById('historialContent');
+  if (!dates.length) {
+    el.innerHTML = '<div class="history-empty"><div class="big">📓</div><div>Aún no hay registros.<br>¡Empieza hoy!</div></div>';
+    return;
+  }
+
+  const LABELS = ['Emoc. Positivas','Emoc. Negativas','Asertividad','Delegación','Pensamientos','Auto-cura','Social','Logros','Frases'];
+  const KEYS = [['f1_emocion','f1_causa'],['f2_emocion','f2_causa'],['f3_situacion','f3_asertivo'],
+    ['f4_tarea','f4_cambio'],['f5_pensamientos'],['f6_notas'],['f7_descripcion'],['f8_logros','f8_cualidades'],['f9_frase']];
+
+  el.innerHTML = dates.map(date => {
+    const d = entries[date];
+    const chips = KEYS.map((keys, i) => {
+      const filled = keys.some(k => d[k] && d[k].trim());
+      const extra = i === 5 ? (d.autocura||[]).length > 0 : i === 6 ? (d.social||[]).length > 0 : false;
+      const hasCont = filled || extra;
+      return `<span class="chip ${hasCont ? 'chip-filled' : 'chip-empty'}">${LABELS[i]}</span>`;
+    }).join('');
+    return `<div class="entry-card" onclick="openEntry('${date}')">
+      <div class="entry-date">${formatDate(date)}</div>
+      <div class="entry-chips">${chips}</div>
+    </div>`;
+  }).join('');
+}
+
+// -- Overlay detail --
+function openEntry(date) {
+  const entries = getEntries();
+  const d = entries[date];
+  if (!d) return;
+  document.getElementById('overlayDate').textContent = formatDate(date);
+
+  const sections = [
+    {
+      icon:'🌟', title:'Emociones Positivas',
+      items:[
+        { label:'¿Qué sentí?', val: d.f1_emocion },
+        { label:'¿Qué lo causó?', val: d.f1_causa },
+        { label:'Intensidad', val: d.f1_rating ? '⭐'.repeat(d.f1_rating) : '' }
+      ]
+    },
+    {
+      icon:'🌧️', title:'Emociones Negativas',
+      items:[
+        { label:'¿Qué sentí?', val: d.f2_emocion },
+        { label:'¿Qué lo causó?', val: d.f2_causa },
+        { label:'Intensidad', val: d.f2_rating ? '⭐'.repeat(d.f2_rating) : '' }
+      ]
+    },
+    {
+      icon:'💬', title:'Asertividad',
+      items:[
+        { label:'¿Qué dije/hice?', val: d.f3_situacion },
+        { label:'Respuesta asertiva', val: d.f3_asertivo }
+      ]
+    },
+    {
+      icon:'🤝', title:'Delegación',
+      items:[
+        { label:'Tarea', val: d.f4_tarea },
+        { label:'¿Pude delegar?', val: (d.delegado||[]).join(', ') },
+        { label:'¿Cómo lo cambiaría?', val: d.f4_cambio }
+      ]
+    },
+    {
+      icon:'🔄', title:'Pensamientos Reiterativos',
+      items:[{ label:'', val: d.f5_pensamientos }]
+    },
+    {
+      icon:'💪', title:'Auto-cura',
+      items:[
+        { label:'Actividades', val: (d.autocura||[]).join(' · ') },
+        { label:'Notas', val: d.f6_notas }
+      ]
+    },
+    {
+      icon:'👥', title:'Actividad Social',
+      items:[
+        { label:'¿Con quién?', val: (d.social||[]).join(' · ') },
+        { label:'¿Cómo fue?', val: d.f7_descripcion }
+      ]
+    },
+    {
+      icon:'🏆', title:'Logros y Cualidades',
+      items:[
+        { label:'Logros', val: d.f8_logros },
+        { label:'Cualidades', val: d.f8_cualidades }
+      ]
+    },
+    {
+      icon:'✨', title:'Frase Positiva',
+      items:[{ label:'', val: d.f9_frase }]
+    }
+  ];
+
+  const html = sections.map(s => {
+    const content = s.items.map(item => {
+      const v = item.val && item.val.trim ? item.val.trim() : (item.val || '');
+      if (!v) return '';
+      return `${item.label ? `<div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;margin-top:8px;">${item.label}</div>` : ''}
+        <div class="detail-text">${v}</div>`;
+    }).filter(Boolean).join('');
+    if (!content) return '';
+    return `<div class="detail-section">
+      <div class="detail-section-title">${s.icon} ${s.title}</div>
+      ${content}
+    </div>`;
+  }).filter(Boolean).join('<hr style="border:none;border-top:1px solid var(--border);margin:4px 0">');
+
+  document.getElementById('overlayBody').innerHTML = html +
+    `<button class="delete-btn" onclick="deleteEntry('${date}')">🗑️ Eliminar este registro</button>`;
+
+  document.getElementById('overlay').classList.add('open');
+}
+
+function deleteEntry(date) {
+  if (!confirm('¿Eliminar el registro del ' + formatDate(date) + '?')) return;
+  const entries = getEntries();
+  delete entries[date];
+  saveEntries(entries);
+  closeOverlay();
+  renderHistorial();
+  showToast('Registro eliminado');
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('overlay')) closeOverlay();
+}
+function closeOverlay() { document.getElementById('overlay').classList.remove('open'); }
+
+// -- Frases --
+function renderFrases() {
+  const frases = getFrases();
+  const el = document.getElementById('frasesContent');
+  if (!frases.length) {
+    el.innerHTML = '<div class="history-empty"><div class="big">✨</div><div>Aún no tienes frases guardadas.<br>Añádelas desde la sección 9 del registro.</div></div>';
+    return;
+  }
+  el.innerHTML = frases.map((f, i) =>
+    `<div class="frase-saved">
+      <span>"${f}"</span>
+      <button class="frase-del" onclick="deleteFrase(${i})" title="Eliminar">✕</button>
+    </div>`
+  ).join('');
+}
+
+function deleteFrase(i) {
+  const frases = getFrases();
+  frases.splice(i, 1);
+  saveFrasesData(frases);
+  renderFrases();
+}
+
+// -- Stats --
+function renderStats() {
+  const entries = getEntries();
+  const dates = Object.keys(entries);
+  const total = dates.length;
+
+  let pos = 0, neg = 0, gym = 0, social = 0, logros = 0;
+  dates.forEach(d => {
+    const e = entries[d];
+    if (e.f1_emocion) pos++;
+    if (e.f2_emocion) neg++;
+    if ((e.autocura||[]).includes('gym')) gym++;
+    if ((e.social||[]).length > 0) social++;
+    if (e.f8_logros) logros++;
+  });
+
+  const frases = getFrases().length;
+  const streak = calcStreak(dates);
+
+  document.getElementById('statsContent').innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Registros totales</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--green)">${streak}</div><div class="stat-label">Racha actual (días)</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--amber)">${frases}</div><div class="stat-label">Frases guardadas</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--blue)">${gym}</div><div class="stat-label">Días de gym/deporte</div></div>
+    </div>
+    <div style="font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">Completitud por sección</div>
+    ${renderBar('Emociones positivas',pos,total,'#10b981')}
+    ${renderBar('Emociones negativas',neg,total,'#ef4444')}
+    ${renderBar('Días con actividad social',social,total,'#6366f1')}
+    ${renderBar('Días con logros anotados',logros,total,'#f59e0b')}
+    <div style="margin-top:20px;">
+      <button class="export-btn" onclick="exportData()">📤 Exportar todos los registros</button>
+    </div>
+  `;
+}
+
+function renderBar(label, val, total, color) {
+  const pct = total ? Math.round(val/total*100) : 0;
+  return `<div style="margin-bottom:14px;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+      <span style="font-size:13px;color:var(--text)">${label}</span>
+      <span style="font-size:13px;font-weight:600;color:var(--muted)">${val}/${total}</span>
+    </div>
+    <div style="background:var(--border);border-radius:4px;height:8px;overflow:hidden;">
+      <div style="background:${color};height:100%;width:${pct}%;border-radius:4px;transition:width 0.5s;"></div>
+    </div>
+  </div>`;
+}
+
+function calcStreak(dates) {
+  if (!dates.length) return 0;
+  const sorted = [...dates].sort((a,b) => b.localeCompare(a));
+  let streak = 0;
+  let check = new Date();
+  check.setHours(0,0,0,0);
+  for (let i = 0; i < 365; i++) {
+    const str = check.getFullYear() + '-' + String(check.getMonth()+1).padStart(2,'0') + '-' + String(check.getDate()).padStart(2,'0');
+    if (sorted.includes(str)) { streak++; }
+    else if (streak > 0) break;
+    check.setDate(check.getDate() - 1);
+  }
+  return streak;
+}
+
+// -- Export --
+function exportData() {
+  const entries = getEntries();
+  const dates = Object.keys(entries).sort((a,b) => b.localeCompare(a));
+  if (!dates.length) { showToast('No hay registros para exportar'); return; }
+
+  const SECTION_NAMES = [
+    '1. EMOCIONES POSITIVAS','2. EMOCIONES NEGATIVAS','3. ASERTIVIDAD',
+    '4. DELEGACIÓN','5. PENSAMIENTOS REITERATIVOS','6. AUTO-CURA',
+    '7. ACTIVIDAD SOCIAL','8. LOGROS Y CUALIDADES','9. FRASES POSITIVAS'
+  ];
+
+  let text = '📓 DIARIO PSICOLÓGICO\nExportado: ' + new Date().toLocaleDateString('es-ES') + '\n';
+  text += '='.repeat(50) + '\n\n';
+
+  dates.forEach(date => {
+    const d = entries[date];
+    text += '📅 ' + formatDate(date).toUpperCase() + '\n';
+    text += '-'.repeat(40) + '\n\n';
+
+    text += SECTION_NAMES[0] + '\n';
+    if (d.f1_emocion) text += '  Emoción: ' + d.f1_emocion + '\n';
+    if (d.f1_causa) text += '  Causa: ' + d.f1_causa + '\n';
+    if (d.f1_rating) text += '  Intensidad: ' + '⭐'.repeat(d.f1_rating) + '\n';
+
+    text += '\n' + SECTION_NAMES[1] + '\n';
+    if (d.f2_emocion) text += '  Emoción: ' + d.f2_emocion + '\n';
+    if (d.f2_causa) text += '  Causa: ' + d.f2_causa + '\n';
+    if (d.f2_rating) text += '  Intensidad: ' + '⭐'.repeat(d.f2_rating) + '\n';
+
+    text += '\n' + SECTION_NAMES[2] + '\n';
+    if (d.f3_situacion) text += '  Lo que dije/hice: ' + d.f3_situacion + '\n';
+    if (d.f3_asertivo) text += '  Respuesta asertiva: ' + d.f3_asertivo + '\n';
+
+    text += '\n' + SECTION_NAMES[3] + '\n';
+    if (d.f4_tarea) text += '  Tarea: ' + d.f4_tarea + '\n';
+    if ((d.delegado||[]).length) text += '  ¿Delegar?: ' + d.delegado.join(', ') + '\n';
+    if (d.f4_cambio) text += '  Cambio: ' + d.f4_cambio + '\n';
+
+    text += '\n' + SECTION_NAMES[4] + '\n';
+    if (d.f5_pensamientos) text += '  ' + d.f5_pensamientos + '\n';
+
+    text += '\n' + SECTION_NAMES[5] + '\n';
+    if ((d.autocura||[]).length) text += '  Actividades: ' + d.autocura.join(', ') + '\n';
+    if (d.f6_notas) text += '  Notas: ' + d.f6_notas + '\n';
+
+    text += '\n' + SECTION_NAMES[6] + '\n';
+    if ((d.social||[]).length) text += '  Con: ' + d.social.join(', ') + '\n';
+    if (d.f7_descripcion) text += '  ' + d.f7_descripcion + '\n';
+
+    text += '\n' + SECTION_NAMES[7] + '\n';
+    if (d.f8_logros) text += '  Logros: ' + d.f8_logros + '\n';
+    if (d.f8_cualidades) text += '  Cualidades: ' + d.f8_cualidades + '\n';
+
+    text += '\n' + SECTION_NAMES[8] + '\n';
+    if (d.f9_frase) text += '  "' + d.f9_frase + '"\n';
+
+    text += '\n' + '='.repeat(50) + '\n\n';
+  });
+
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'diario_psicologico_' + todayStr() + '.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Exportando registros 📤');
+}
+
+// -- Toast --
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// -- Init --
+function init() {
+  const today = todayStr();
+  document.getElementById('entryDate').value = today;
+  document.getElementById('entryDate').addEventListener('change', e => loadEntryForDate(e.target.value));
+  loadEntryForDate(today);
+  document.getElementById('headerSub').textContent = formatDate(today);
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+}
+
+init();
+</script>
+</body>
+</html>
